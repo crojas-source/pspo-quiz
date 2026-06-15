@@ -2,157 +2,1833 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simulador PSPO I - Scrum.org</title>
 <style>
+:root {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --primary: #0066cc;
+  --primary-dark: #004f99;
+  --soft: #eef2f7;
+  --soft2: #dce6f2;
+  --good: #c8f7c5;
+  --bad: #f7c5c5;
+  --warn: #fff7d6;
+  --text: #1f2937;
+}
+* { box-sizing: border-box; }
 body {
   font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  background: var(--bg);
   margin: 0;
   padding: 20px;
+  color: var(--text);
 }
 .container {
-  max-width: 850px;
+  max-width: 950px;
   margin: auto;
-  background: white;
-  padding: 30px;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background: var(--card);
+  padding: 28px;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.10);
 }
-h1 {
-  text-align: center;
+h1 { text-align: center; margin-top: 0; }
+.subtitle { text-align:center; color:#4b5563; margin-bottom:24px; }
+.panel {
+  background: var(--soft);
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 18px;
 }
+.controls {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:16px;
+}
+select, input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 9px;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+button:hover { background: var(--primary-dark); }
+button.secondary { background: #64748b; }
+button.secondary:hover { background: #475569; }
+button.danger { background: #b91c1c; }
+button.danger:hover { background: #991b1b; }
+.stats {
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:10px;
+  margin-bottom:18px;
+}
+.stat {
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+}
+.stat strong { display:block; font-size:20px; }
 .question {
   font-size: 20px;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin: 18px 0;
+  line-height: 1.35;
+}
+.category {
+  display:inline-block;
+  background:#e0f2fe;
+  color:#075985;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:13px;
+  margin-bottom:8px;
 }
 .option {
-  background: #eef2f7;
+  background: var(--soft);
   padding: 14px;
   margin: 10px 0;
   border-radius: 10px;
   cursor: pointer;
+  border: 2px solid transparent;
 }
-.option:hover {
-  background: #dce6f2;
-}
-.correct {
-  background: #c8f7c5 !important;
-}
-.incorrect {
-  background: #f7c5c5 !important;
-}
-button {
-  padding: 12px 22px;
-  border: none;
-  border-radius: 8px;
-  background: #0066cc;
-  color: white;
-  cursor: pointer;
-  margin-top: 20px;
-}
-#result {
-  font-size: 22px;
-  font-weight: bold;
-  text-align: center;
-}
+.option:hover { background: var(--soft2); }
+.correct { background: var(--good) !important; border-color:#22c55e; }
+.incorrect { background: var(--bad) !important; border-color:#ef4444; }
 .explanation {
   margin-top: 15px;
-  background: #fff7d6;
-  padding: 12px;
-  border-radius: 8px;
+  background: var(--warn);
+  padding: 14px;
+  border-radius: 10px;
+  line-height:1.5;
+}
+#result {
+  font-size: 18px;
+  text-align: center;
+  line-height:1.5;
+}
+.progress {
+  width:100%;
+  height:12px;
+  background:#e5e7eb;
+  border-radius:999px;
+  overflow:hidden;
+  margin:12px 0 18px;
+}
+.progress-bar {
+  height:100%;
+  background:var(--primary);
+  width:0%;
+  transition: width .25s ease;
+}
+.small {
+  font-size: 13px;
+  color:#64748b;
+}
+@media (max-width: 700px) {
+  .container { padding:18px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .question { font-size:18px; }
 }
 </style>
 </head>
-
 <body>
 <div class="container">
   <h1>Simulador PSPO I - Scrum.org</h1>
-  <p><strong>Objetivo:</strong> practicar conceptos de Scrum, Product Owner, Product Backlog, valor e Incremento.</p>
+  <p class="subtitle">Banco de estudio con preguntas originales basadas en Scrum Guide, Product Ownership profesional, empirismo, valor, Product Backlog, Definition of Done y eventos Scrum.</p>
+
+  <div class="panel" id="setup">
+    <div class="controls">
+      <label>Cantidad:
+        <select id="questionCount">
+          <option value="10">10 preguntas</option>
+          <option value="20">20 preguntas</option>
+          <option value="40">40 preguntas</option>
+          <option value="80">80 preguntas modo examen</option>
+          <option value="130">Banco completo</option>
+        </select>
+      </label>
+      <label>Categoría:
+        <select id="categoryFilter">
+          <option value="Todas">Todas</option>
+        </select>
+      </label>
+      <button onclick="startQuiz()">Iniciar / Reiniciar</button>
+      <button class="secondary" onclick="shuffleOnly()">Aleatorizar banco</button>
+    </div>
+    <p class="small">Nota: no contiene copias literales de exámenes oficiales ni de páginas externas. Es un simulador de práctica con preguntas propias estilo certificación.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">Pregunta<strong id="statCurrent">0/0</strong></div>
+    <div class="stat">Correctas<strong id="statCorrect">0</strong></div>
+    <div class="stat">Incorrectas<strong id="statIncorrect">0</strong></div>
+    <div class="stat">% Acierto<strong id="statPercent">0%</strong></div>
+  </div>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
 
   <div id="quiz"></div>
-  <button id="nextBtn" onclick="nextQuestion()">Siguiente</button>
+  <button id="nextBtn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+  <button id="restartBtn" class="danger" onclick="startQuiz()" style="display:none;">Reiniciar cuestionario</button>
   <div id="result"></div>
 </div>
 
 <script>
-const questions = [
+const allQuestions = [
   {
-    question: "¿Quién es responsable de maximizar el valor del producto?",
-    options: ["Scrum Master", "Product Owner", "Developers", "Stakeholders"],
-    answer: 1,
-    explanation: "El Product Owner es responsable de maximizar el valor del producto resultante del trabajo del Scrum Team."
+    "question": "¿Cuál es la principal responsabilidad del Product Owner?",
+    "options": [
+      "Facilitar eventos Scrum",
+      "Maximizar el valor del producto",
+      "Asignar tareas a Developers",
+      "Administrar el presupuesto del proyecto"
+    ],
+    "answer": 1,
+    "explanation": "El Product Owner es responsable de maximizar el valor del producto resultante del trabajo del Scrum Team.",
+    "category": "Product Owner"
   },
   {
-    question: "¿Quién es responsable de gestionar el Product Backlog?",
-    options: ["Scrum Master", "Product Owner", "Developers", "Cliente"],
-    answer: 1,
-    explanation: "El Product Owner es responsable de la gestión efectiva del Product Backlog."
+    "question": "¿Quién es responsable de la gestión efectiva del Product Backlog?",
+    "options": [
+      "Scrum Master",
+      "Product Owner",
+      "Developers",
+      "Stakeholders"
+    ],
+    "answer": 1,
+    "explanation": "El Product Owner es responsable de gestionar eficazmente el Product Backlog.",
+    "category": "Product Backlog"
   },
   {
-    question: "¿Cuál es la duración máxima de un Sprint?",
-    options: ["Una semana", "Un mes", "Tres meses", "No tiene límite"],
-    answer: 1,
-    explanation: "Un Sprint tiene una duración fija de un mes o menos."
+    "question": "¿Quién decide el orden de los elementos del Product Backlog?",
+    "options": [
+      "Scrum Master",
+      "Product Owner",
+      "Developers",
+      "Project Manager"
+    ],
+    "answer": 1,
+    "explanation": "El Product Owner ordena el Product Backlog para maximizar valor, riesgo, aprendizaje y oportunidad.",
+    "category": "Product Backlog"
   },
   {
-    question: "¿Qué se inspecciona en la Sprint Review?",
-    options: ["Solo el desempeño del equipo", "El Incremento y el progreso hacia el Product Goal", "Solo la velocidad", "Solo los errores"],
-    answer: 1,
-    explanation: "En la Sprint Review se inspecciona el resultado del Sprint y se adapta el Product Backlog si es necesario."
+    "question": "¿Quién decide cuánto trabajo se selecciona para un Sprint?",
+    "options": [
+      "Product Owner",
+      "Scrum Master",
+      "Developers",
+      "Stakeholders"
+    ],
+    "answer": 2,
+    "explanation": "Los Developers seleccionan cuánto trabajo pueden realizar durante el Sprint.",
+    "category": "Sprint Planning"
   },
   {
-    question: "¿Quién puede cancelar un Sprint?",
-    options: ["Scrum Master", "Developers", "Product Owner", "Stakeholders"],
-    answer: 2,
-    explanation: "Solo el Product Owner tiene la autoridad para cancelar un Sprint."
+    "question": "¿Quién decide cómo se realizará el trabajo durante el Sprint?",
+    "options": [
+      "Product Owner",
+      "Developers",
+      "Scrum Master",
+      "Cliente"
+    ],
+    "answer": 1,
+    "explanation": "Los Developers son responsables de organizar y ejecutar el trabajo necesario para crear el Incremento.",
+    "category": "Developers"
   },
   {
-    question: "¿Qué es el Product Goal?",
-    options: ["Una tarea del Sprint", "El objetivo futuro del producto", "Una métrica financiera", "Un reporte del Scrum Master"],
-    answer: 1,
-    explanation: "El Product Goal describe un estado futuro del producto que sirve como objetivo para el Scrum Team."
+    "question": "¿Quién puede cancelar un Sprint?",
+    "options": [
+      "Scrum Master",
+      "Developers",
+      "Product Owner",
+      "Cualquier stakeholder"
+    ],
+    "answer": 2,
+    "explanation": "Solo el Product Owner tiene autoridad para cancelar un Sprint si el Sprint Goal queda obsoleto.",
+    "category": "Sprint"
   },
   {
-    question: "¿Quién decide el orden de los elementos del Product Backlog?",
-    options: ["Scrum Master", "Product Owner", "Developers", "Stakeholders"],
-    answer: 1,
-    explanation: "El Product Owner ordena el Product Backlog para maximizar valor."
+    "question": "¿Cuál es el tamaño recomendado de un Scrum Team?",
+    "options": [
+      "3 personas exactas",
+      "10 o menos personas",
+      "Entre 15 y 25 personas",
+      "No hay ninguna guía"
+    ],
+    "answer": 1,
+    "explanation": "Scrum recomienda equipos pequeños, típicamente de 10 o menos personas.",
+    "category": "Scrum Team"
   },
   {
-    question: "¿Qué debe cumplir un Incremento?",
-    options: ["La Definition of Done", "La opinión del cliente", "El presupuesto", "La velocidad esperada"],
-    answer: 0,
-    explanation: "Todo Incremento debe cumplir la Definition of Done."
+    "question": "¿Quiénes conforman el Scrum Team?",
+    "options": [
+      "Product Owner, Scrum Master y Developers",
+      "Product Manager, Project Manager y Developers",
+      "Cliente, Scrum Master y QA",
+      "Sponsor, Product Owner y Gerente"
+    ],
+    "answer": 0,
+    "explanation": "El Scrum Team está compuesto por Product Owner, Scrum Master y Developers.",
+    "category": "Scrum Team"
   },
   {
-    question: "¿Quiénes crean el Sprint Backlog?",
-    options: ["Product Owner solamente", "Scrum Master solamente", "Developers", "Stakeholders"],
-    answer: 2,
-    explanation: "Los Developers crean el Sprint Backlog durante la Sprint Planning."
+    "question": "¿El Product Owner es una persona o un comité?",
+    "options": [
+      "Una persona",
+      "Un comité",
+      "Un departamento",
+      "Depende siempre del tamaño de la empresa"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner es una persona, no un comité. Puede recibir apoyo, pero mantiene la responsabilidad.",
+    "category": "Product Owner"
   },
   {
-    question: "¿Qué evento permite al Scrum Team inspeccionar cómo trabajó y planificar mejoras?",
-    options: ["Daily Scrum", "Sprint Review", "Sprint Retrospective", "Sprint Planning"],
-    answer: 2,
-    explanation: "La Sprint Retrospective sirve para inspeccionar el trabajo del equipo y definir mejoras."
+    "question": "¿Puede el Product Owner delegar trabajo relacionado con el Product Backlog?",
+    "options": [
+      "Sí, pero sigue siendo accountable",
+      "No, nunca",
+      "Solo al Scrum Master",
+      "Solo a stakeholders"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner puede delegar actividades, pero sigue siendo responsable por la gestión efectiva del Product Backlog.",
+    "category": "Product Owner"
+  },
+  {
+    "question": "¿Cuáles son los tres artefactos de Scrum?",
+    "options": [
+      "Product Backlog, Sprint Backlog e Incremento",
+      "Roadmap, Gantt y Presupuesto",
+      "Historia, Épica y Tarea",
+      "Daily, Review y Retrospective"
+    ],
+    "answer": 0,
+    "explanation": "Los artefactos oficiales son Product Backlog, Sprint Backlog e Incremento.",
+    "category": "Artefactos"
+  },
+  {
+    "question": "¿Qué compromiso está asociado al Product Backlog?",
+    "options": [
+      "Sprint Goal",
+      "Product Goal",
+      "Definition of Done",
+      "Release Plan"
+    ],
+    "answer": 1,
+    "explanation": "El Product Goal es el compromiso asociado al Product Backlog.",
+    "category": "Product Goal"
+  },
+  {
+    "question": "¿Qué compromiso está asociado al Sprint Backlog?",
+    "options": [
+      "Product Goal",
+      "Sprint Goal",
+      "Definition of Done",
+      "Visión"
+    ],
+    "answer": 1,
+    "explanation": "El Sprint Goal es el compromiso asociado al Sprint Backlog.",
+    "category": "Sprint Goal"
+  },
+  {
+    "question": "¿Qué compromiso está asociado al Incremento?",
+    "options": [
+      "Product Goal",
+      "Sprint Goal",
+      "Definition of Done",
+      "Definition of Ready"
+    ],
+    "answer": 2,
+    "explanation": "La Definition of Done es el compromiso asociado al Incremento.",
+    "category": "Definition of Done"
+  },
+  {
+    "question": "¿Qué es el Product Goal?",
+    "options": [
+      "Un objetivo futuro del producto",
+      "La lista de tareas del Sprint",
+      "El plan de release obligatorio",
+      "Una métrica de velocidad"
+    ],
+    "answer": 0,
+    "explanation": "El Product Goal describe un estado futuro del producto que orienta al Scrum Team.",
+    "category": "Product Goal"
+  },
+  {
+    "question": "¿Qué es el Sprint Goal?",
+    "options": [
+      "El objetivo único del Sprint",
+      "Una lista completa de tareas",
+      "Una métrica financiera",
+      "Un contrato con stakeholders"
+    ],
+    "answer": 0,
+    "explanation": "El Sprint Goal da coherencia y propósito al Sprint.",
+    "category": "Sprint Goal"
+  },
+  {
+    "question": "¿Qué es la Definition of Done?",
+    "options": [
+      "Un estándar de calidad para considerar trabajo terminado",
+      "Una lista opcional de ideas",
+      "Una estimación del Product Owner",
+      "Un acta de aprobación externa"
+    ],
+    "answer": 0,
+    "explanation": "La Definition of Done define las condiciones para que un Incremento sea considerado terminado.",
+    "category": "Definition of Done"
+  },
+  {
+    "question": "¿Cuándo nace un Incremento?",
+    "options": [
+      "Al final del Sprint solamente",
+      "Cuando un Product Backlog Item cumple la Definition of Done",
+      "Cuando el Product Owner lo aprueba verbalmente",
+      "Cuando se realiza la Daily Scrum"
+    ],
+    "answer": 1,
+    "explanation": "Un Incremento se crea cuando un elemento cumple la Definition of Done.",
+    "category": "Incremento"
+  },
+  {
+    "question": "¿Puede haber más de un Incremento durante un Sprint?",
+    "options": [
+      "Sí",
+      "No",
+      "Solo si el Sprint dura un mes",
+      "Solo con autorización del Scrum Master"
+    ],
+    "answer": 0,
+    "explanation": "Durante un Sprint pueden crearse múltiples Incrementos.",
+    "category": "Incremento"
+  },
+  {
+    "question": "¿Qué debe ocurrir si un elemento no cumple la Definition of Done?",
+    "options": [
+      "No forma parte del Incremento",
+      "Se considera terminado parcialmente",
+      "Se presenta como completado",
+      "Se elimina del Product Backlog"
+    ],
+    "answer": 0,
+    "explanation": "El trabajo que no cumple la Definition of Done no puede considerarse parte del Incremento.",
+    "category": "Definition of Done"
+  },
+  {
+    "question": "¿Cuál es la duración máxima de un Sprint?",
+    "options": [
+      "Una semana",
+      "Un mes o menos",
+      "Tres meses",
+      "No tiene límite"
+    ],
+    "answer": 1,
+    "explanation": "Un Sprint tiene una duración fija de un mes o menos.",
+    "category": "Sprint"
+  },
+  {
+    "question": "¿Qué evento inicia el Sprint?",
+    "options": [
+      "Daily Scrum",
+      "Sprint Planning",
+      "Sprint Review",
+      "Sprint Retrospective"
+    ],
+    "answer": 1,
+    "explanation": "El Sprint comienza con la Sprint Planning.",
+    "category": "Sprint Planning"
+  },
+  {
+    "question": "¿Qué evento cierra el Sprint?",
+    "options": [
+      "Daily Scrum",
+      "Sprint Review",
+      "Sprint Retrospective",
+      "Refinement"
+    ],
+    "answer": 2,
+    "explanation": "La Sprint Retrospective es el último evento del Sprint.",
+    "category": "Sprint Retrospective"
+  },
+  {
+    "question": "¿Cuál es el time-box de la Daily Scrum?",
+    "options": [
+      "10 minutos",
+      "15 minutos",
+      "30 minutos",
+      "1 hora"
+    ],
+    "answer": 1,
+    "explanation": "La Daily Scrum dura máximo 15 minutos.",
+    "category": "Daily Scrum"
+  },
+  {
+    "question": "¿Quiénes deben participar en la Daily Scrum?",
+    "options": [
+      "Developers",
+      "Stakeholders",
+      "Solo Product Owner",
+      "Solo Scrum Master"
+    ],
+    "answer": 0,
+    "explanation": "La Daily Scrum es un evento de los Developers.",
+    "category": "Daily Scrum"
+  },
+  {
+    "question": "¿Cuál es el propósito principal de la Daily Scrum?",
+    "options": [
+      "Inspeccionar progreso hacia el Sprint Goal y adaptar el plan",
+      "Reportar estado al gerente",
+      "Aprobar requisitos",
+      "Ordenar el Product Backlog"
+    ],
+    "answer": 0,
+    "explanation": "La Daily Scrum permite inspeccionar el progreso hacia el Sprint Goal y adaptar el plan diario.",
+    "category": "Daily Scrum"
+  },
+  {
+    "question": "¿Qué se inspecciona principalmente en la Sprint Review?",
+    "options": [
+      "El Incremento y el progreso hacia el Product Goal",
+      "El desempeño individual",
+      "Solo la velocidad",
+      "Solo la documentación"
+    ],
+    "answer": 0,
+    "explanation": "La Sprint Review inspecciona el resultado del Sprint y adapta el Product Backlog si es necesario.",
+    "category": "Sprint Review"
+  },
+  {
+    "question": "¿Cuál es el propósito de la Sprint Retrospective?",
+    "options": [
+      "Mejorar la forma de trabajar",
+      "Revisar presupuesto",
+      "Aceptar formalmente el Incremento",
+      "Asignar nuevas tareas"
+    ],
+    "answer": 0,
+    "explanation": "La Retrospective permite inspeccionar cómo trabajó el equipo y planificar mejoras.",
+    "category": "Sprint Retrospective"
+  },
+  {
+    "question": "¿Qué evento permite planificar el trabajo que se realizará en el Sprint?",
+    "options": [
+      "Sprint Planning",
+      "Sprint Review",
+      "Daily Scrum",
+      "Retrospective"
+    ],
+    "answer": 0,
+    "explanation": "La Sprint Planning define por qué, qué y cómo se trabajará durante el Sprint.",
+    "category": "Sprint Planning"
+  },
+  {
+    "question": "¿Qué evento permite recibir feedback de stakeholders?",
+    "options": [
+      "Sprint Review",
+      "Daily Scrum",
+      "Retrospective",
+      "Sprint Planning"
+    ],
+    "answer": 0,
+    "explanation": "La Sprint Review es el evento formal para inspeccionar el Incremento con stakeholders y adaptar.",
+    "category": "Sprint Review"
+  },
+  {
+    "question": "¿Cuáles son los pilares de Scrum?",
+    "options": [
+      "Transparencia, Inspección y Adaptación",
+      "Planificación, Control y Ejecución",
+      "Costo, Alcance y Tiempo",
+      "Velocidad, Calidad y Presupuesto"
+    ],
+    "answer": 0,
+    "explanation": "Scrum se basa en transparencia, inspección y adaptación.",
+    "category": "Empirismo"
+  },
+  {
+    "question": "¿Qué significa empirismo en Scrum?",
+    "options": [
+      "Decidir según experiencia, evidencia y observación",
+      "Seguir un plan fijo",
+      "Evitar cambios",
+      "Documentar todo antes de iniciar"
+    ],
+    "answer": 0,
+    "explanation": "El empirismo sostiene que el conocimiento proviene de la experiencia y la toma de decisiones basada en lo observado.",
+    "category": "Empirismo"
+  },
+  {
+    "question": "¿Cuál NO es un valor de Scrum?",
+    "options": [
+      "Focus",
+      "Openness",
+      "Control",
+      "Courage"
+    ],
+    "answer": 2,
+    "explanation": "Los valores de Scrum son Commitment, Focus, Openness, Respect y Courage.",
+    "category": "Valores Scrum"
+  },
+  {
+    "question": "¿Por qué la transparencia es importante?",
+    "options": [
+      "Porque permite inspección y adaptación efectiva",
+      "Porque elimina la necesidad de feedback",
+      "Porque reemplaza la Definition of Done",
+      "Porque evita la Sprint Review"
+    ],
+    "answer": 0,
+    "explanation": "Sin transparencia, la inspección puede ser engañosa y la adaptación incorrecta.",
+    "category": "Transparencia"
+  },
+  {
+    "question": "¿Qué permite la inspección frecuente?",
+    "options": [
+      "Detectar variaciones y oportunidades de adaptación",
+      "Evitar conversaciones con stakeholders",
+      "Eliminar incertidumbre totalmente",
+      "Congelar el Product Backlog"
+    ],
+    "answer": 0,
+    "explanation": "La inspección frecuente permite detectar desviaciones, aprendizaje y oportunidades.",
+    "category": "Inspección"
+  },
+  {
+    "question": "¿Qué ocurre si no hay adaptación después de inspeccionar?",
+    "options": [
+      "Scrum pierde efectividad",
+      "El Sprint se extiende",
+      "El Product Owner desaparece",
+      "La Daily se cancela"
+    ],
+    "answer": 0,
+    "explanation": "La inspección sin adaptación reduce el valor del empirismo.",
+    "category": "Adaptación"
+  },
+  {
+    "question": "¿Qué valor de Scrum se relaciona con decir la verdad sobre problemas y riesgos?",
+    "options": [
+      "Openness",
+      "Velocidad",
+      "Jerarquía",
+      "Control"
+    ],
+    "answer": 0,
+    "explanation": "Openness implica apertura sobre el trabajo, los desafíos y el progreso.",
+    "category": "Valores Scrum"
+  },
+  {
+    "question": "¿Qué valor ayuda al Scrum Team a concentrarse en el Sprint Goal?",
+    "options": [
+      "Focus",
+      "Respect",
+      "Courage",
+      "Commitment"
+    ],
+    "answer": 0,
+    "explanation": "Focus permite concentrarse en el trabajo y objetivos del Sprint.",
+    "category": "Valores Scrum"
+  },
+  {
+    "question": "¿Qué valor se relaciona con atreverse a hacer lo correcto y enfrentar problemas difíciles?",
+    "options": [
+      "Courage",
+      "Velocity",
+      "Scope",
+      "Compliance"
+    ],
+    "answer": 0,
+    "explanation": "Courage permite enfrentar problemas, transparencia y decisiones difíciles.",
+    "category": "Valores Scrum"
+  },
+  {
+    "question": "¿Qué valor reconoce que las personas son capaces e independientes?",
+    "options": [
+      "Respect",
+      "Control",
+      "Forecast",
+      "Scope"
+    ],
+    "answer": 0,
+    "explanation": "Respect significa valorar a las personas como individuos capaces.",
+    "category": "Valores Scrum"
+  },
+  {
+    "question": "¿Qué caracteriza al product mindset?",
+    "options": [
+      "Medir éxito por valor y resultados",
+      "Medir éxito solo por alcance, tiempo y presupuesto",
+      "Evitar releases frecuentes",
+      "Gestionar personas como recursos"
+    ],
+    "answer": 0,
+    "explanation": "El product mindset se enfoca en resultados, clientes, valor, aprendizaje y adaptación.",
+    "category": "Product Mindset"
+  },
+  {
+    "question": "¿Qué caracteriza al project mindset tradicional?",
+    "options": [
+      "Éxito medido principalmente por alcance, tiempo y presupuesto",
+      "Éxito medido solo por adopción de usuario",
+      "Aprendizaje frecuente",
+      "Validación continua"
+    ],
+    "answer": 0,
+    "explanation": "El project mindset suele medir éxito por cumplimiento del plan inicial.",
+    "category": "Project Mindset"
+  },
+  {
+    "question": "¿Cuál es una métrica externa útil para un producto?",
+    "options": [
+      "Adopción de usuarios",
+      "Cantidad de reuniones internas",
+      "Horas sentadas",
+      "Número de tareas asignadas"
+    ],
+    "answer": 0,
+    "explanation": "Las métricas externas conectan el producto con resultados reales de usuarios y negocio.",
+    "category": "Valor"
+  },
+  {
+    "question": "¿Qué significa maximizar valor?",
+    "options": [
+      "Elegir trabajo que entregue mayor impacto posible",
+      "Hacer todo lo que pidan los stakeholders",
+      "Aumentar el tamaño del equipo",
+      "Completar más tareas sin validar"
+    ],
+    "answer": 0,
+    "explanation": "Maximizar valor implica tomar decisiones sobre qué construir, cuándo y por qué.",
+    "category": "Valor"
+  },
+  {
+    "question": "¿Qué debe hacer el Product Owner frente a múltiples stakeholders?",
+    "options": [
+      "Equilibrar intereses y tomar decisiones de producto",
+      "Aceptar todas las solicitudes",
+      "Delegar toda decisión al Scrum Master",
+      "Evitar conversaciones difíciles"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner representa el producto y debe ordenar decisiones según valor.",
+    "category": "Stakeholders"
+  },
+  {
+    "question": "¿Qué es una visión de producto?",
+    "options": [
+      "Una dirección clara de futuro para el producto",
+      "Una lista de tareas técnicas",
+      "Un contrato cerrado",
+      "Una métrica de velocidad"
+    ],
+    "answer": 0,
+    "explanation": "La visión ayuda a alinear decisiones, conversaciones y desarrollo del producto.",
+    "category": "Visión"
+  },
+  {
+    "question": "¿Qué relación hay entre visión y transparencia?",
+    "options": [
+      "La visión ayuda a entender por qué se construye el producto",
+      "La visión reemplaza al Sprint Review",
+      "La visión elimina la necesidad de Product Backlog",
+      "La visión pertenece solo al Scrum Master"
+    ],
+    "answer": 0,
+    "explanation": "Una visión compartida da contexto y mejora la transparencia.",
+    "category": "Visión"
+  },
+  {
+    "question": "¿Qué son las tres V en Product Ownership profesional?",
+    "options": [
+      "Vision, Value, Validation",
+      "Velocity, Volume, Version",
+      "Value, Variance, Verification",
+      "Vision, Velocity, Verification"
+    ],
+    "answer": 0,
+    "explanation": "Las tres V ayudan a cubrir el vacío de gestión de producto: visión, valor y validación.",
+    "category": "Product Ownership"
+  },
+  {
+    "question": "¿Qué busca la validación en Product Ownership?",
+    "options": [
+      "Comprobar hipótesis con feedback real",
+      "Aprobar documentos internos",
+      "Evitar cambios",
+      "Cerrar el alcance inicial"
+    ],
+    "answer": 0,
+    "explanation": "Validar significa aprender si lo construido genera valor real.",
+    "category": "Validación"
+  },
+  {
+    "question": "¿Qué es un MVP?",
+    "options": [
+      "Una versión mínima para validar hipótesis",
+      "El producto final",
+      "Una maqueta sin aprendizaje",
+      "Un informe de cierre"
+    ],
+    "answer": 0,
+    "explanation": "Un MVP permite aprender con el mínimo esfuerzo razonable.",
+    "category": "MVP"
+  },
+  {
+    "question": "¿Qué es el Product Backlog?",
+    "options": [
+      "Una lista ordenada de lo necesario para mejorar el producto",
+      "Una carta Gantt",
+      "Un contrato fijo",
+      "Una lista exclusiva de bugs"
+    ],
+    "answer": 0,
+    "explanation": "El Product Backlog es una lista emergente, ordenada y única de trabajo para el producto.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿El Product Backlog puede cambiar?",
+    "options": [
+      "Sí, es emergente",
+      "No, se congela al iniciar",
+      "Solo al final del proyecto",
+      "Solo si lo aprueba QA"
+    ],
+    "answer": 0,
+    "explanation": "El Product Backlog evoluciona conforme se aprende más sobre el producto, usuarios y mercado.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿Qué elementos puede contener un Product Backlog?",
+    "options": [
+      "Funcionalidades, mejoras, bugs, trabajo técnico y aprendizaje",
+      "Solo historias de usuario",
+      "Solo tareas técnicas",
+      "Solo requerimientos legales"
+    ],
+    "answer": 0,
+    "explanation": "El Product Backlog puede contener cualquier trabajo necesario para el producto.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿Qué significa ordenar el Product Backlog?",
+    "options": [
+      "Definir prioridad relativa según valor, riesgo, dependencias y aprendizaje",
+      "Ordenar alfabéticamente",
+      "Ordenar por fecha de creación",
+      "Ordenar por autor de la solicitud"
+    ],
+    "answer": 0,
+    "explanation": "El orden debe ayudar a maximizar valor y aprendizaje.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿Quién estima el tamaño de los Product Backlog Items?",
+    "options": [
+      "Developers",
+      "Product Owner únicamente",
+      "Stakeholders",
+      "Scrum Master únicamente"
+    ],
+    "answer": 0,
+    "explanation": "Los Developers estiman porque son responsables de realizar el trabajo.",
+    "category": "Estimación"
+  },
+  {
+    "question": "¿Quién explica el valor esperado de un Product Backlog Item?",
+    "options": [
+      "Product Owner",
+      "Developers exclusivamente",
+      "Scrum Master",
+      "Auditor"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner comunica valor, objetivos y contexto de los elementos.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿Qué es Product Backlog Refinement?",
+    "options": [
+      "Actividad continua para descomponer, aclarar y ordenar elementos",
+      "Un evento obligatorio con time-box fijo",
+      "La reunión final del Sprint",
+      "La aprobación formal del Incremento"
+    ],
+    "answer": 0,
+    "explanation": "Refinement es una actividad continua para preparar y entender mejor los elementos.",
+    "category": "Refinement"
+  },
+  {
+    "question": "¿Es Product Backlog Refinement un evento oficial de Scrum?",
+    "options": [
+      "No, es una actividad continua",
+      "Sí, siempre dura 4 horas",
+      "Sí, reemplaza la Sprint Planning",
+      "Sí, solo ocurre al final del Sprint"
+    ],
+    "answer": 0,
+    "explanation": "Scrum lo describe como actividad continua, no como evento formal obligatorio.",
+    "category": "Refinement"
+  },
+  {
+    "question": "¿Qué indica que un Product Backlog Item está suficientemente preparado?",
+    "options": [
+      "Que puede ser entendido y seleccionado para un Sprint",
+      "Que tiene 50 páginas de requisitos",
+      "Que fue aprobado por finanzas",
+      "Que no puede cambiar"
+    ],
+    "answer": 0,
+    "explanation": "Los elementos más próximos suelen estar más refinados para poder ser seleccionados.",
+    "category": "Refinement"
+  },
+  {
+    "question": "¿Qué práctica ayuda a ordenar trabajo por experiencia de usuario?",
+    "options": [
+      "Story mapping",
+      "Control de asistencia",
+      "Reporte de horas",
+      "Gantt detallado"
+    ],
+    "answer": 0,
+    "explanation": "Story mapping ayuda a visualizar flujo de usuario, prioridades y releases.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿Scrum exige releases al final de cada Sprint?",
+    "options": [
+      "No, pero el Incremento debe ser usable",
+      "Sí, siempre debe liberarse a producción",
+      "No se pueden hacer releases",
+      "Solo cada tres Sprints"
+    ],
+    "answer": 0,
+    "explanation": "Cada Sprint produce un Incremento usable; la decisión de release depende del contexto.",
+    "category": "Release"
+  },
+  {
+    "question": "¿Qué ayuda a decidir cuándo liberar?",
+    "options": [
+      "Valor, riesgo, feedback, costo de retraso y readiness",
+      "Solamente la velocidad",
+      "Solamente el calendario",
+      "Solo la opinión del Scrum Master"
+    ],
+    "answer": 0,
+    "explanation": "La estrategia de release debe considerar valor, aprendizaje, riesgo y oportunidad.",
+    "category": "Release"
+  },
+  {
+    "question": "¿Qué es forecasting en Scrum?",
+    "options": [
+      "Pronosticar usando evidencia empírica",
+      "Prometer fechas fijas sin incertidumbre",
+      "Eliminar riesgos",
+      "Congelar alcance"
+    ],
+    "answer": 0,
+    "explanation": "El forecasting usa información real y se adapta conforme cambia la evidencia.",
+    "category": "Forecasting"
+  },
+  {
+    "question": "¿Qué problema tiene usar solo porcentaje de avance?",
+    "options": [
+      "Puede ocultar valor real y trabajo no terminado",
+      "Siempre es exacto",
+      "Reemplaza el Incremento",
+      "Elimina incertidumbre"
+    ],
+    "answer": 0,
+    "explanation": "El porcentaje de avance puede ser engañoso si no se basa en Incrementos terminados.",
+    "category": "Métricas"
+  },
+  {
+    "question": "¿Qué métrica está más conectada con valor?",
+    "options": [
+      "Resultados de usuario o negocio",
+      "Cantidad de reuniones",
+      "Cantidad de documentos",
+      "Horas extra"
+    ],
+    "answer": 0,
+    "explanation": "Las métricas de valor miden resultados y efectos reales.",
+    "category": "Valor"
+  },
+  {
+    "question": "¿Qué es costo de retraso?",
+    "options": [
+      "Impacto económico de demorar una entrega o decisión",
+      "Costo de una reunión",
+      "Costo de contratar Developers",
+      "Costo de mantener un tablero"
+    ],
+    "answer": 0,
+    "explanation": "El costo de retraso ayuda a ordenar decisiones según impacto temporal.",
+    "category": "Valor"
+  },
+  {
+    "question": "¿Por qué releases pequeños pueden ser útiles?",
+    "options": [
+      "Permiten feedback temprano y reducen riesgo",
+      "Evitan inspección",
+      "Eliminan la necesidad de calidad",
+      "Aumentan documentación"
+    ],
+    "answer": 0,
+    "explanation": "Releases pequeños aceleran aprendizaje y reducen riesgo.",
+    "category": "Release"
+  },
+  {
+    "question": "¿Qué debe evitar el Product Owner al ordenar el Product Backlog?",
+    "options": [
+      "Ordenar solo por presión política sin valorar impacto",
+      "Considerar riesgo",
+      "Considerar valor",
+      "Considerar aprendizaje"
+    ],
+    "answer": 0,
+    "explanation": "El orden debe basarse en valor, riesgo, dependencias, aprendizaje y objetivos.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿Qué significa ROI en decisiones de producto?",
+    "options": [
+      "Relación entre beneficio esperado e inversión",
+      "Cantidad de reuniones",
+      "Tamaño del equipo",
+      "Duración del Sprint"
+    ],
+    "answer": 0,
+    "explanation": "ROI ayuda a comparar alternativas considerando beneficio e inversión.",
+    "category": "Valor"
+  },
+  {
+    "question": "¿Qué pasa si dos elementos tienen valor similar pero uno requiere mucho menos esfuerzo?",
+    "options": [
+      "Podría tener mayor retorno relativo",
+      "Siempre debe hacerse el más grande",
+      "Se descartan ambos",
+      "Lo decide el Scrum Master"
+    ],
+    "answer": 0,
+    "explanation": "Con valor similar, menor esfuerzo puede mejorar retorno y aprendizaje temprano.",
+    "category": "Ordenamiento"
+  },
+  {
+    "question": "¿Por qué la calidad debe incorporarse desde el inicio?",
+    "options": [
+      "Porque reduce retrabajo y permite Incrementos Done",
+      "Porque reemplaza feedback",
+      "Porque aumenta burocracia",
+      "Porque evita hablar con usuarios"
+    ],
+    "answer": 0,
+    "explanation": "La calidad integrada permite entregar Incrementos confiables y sostenibles.",
+    "category": "Calidad"
+  },
+  {
+    "question": "¿Qué relación hay entre Definition of Done y calidad?",
+    "options": [
+      "La DoD transparenta estándares mínimos de calidad",
+      "La DoD elimina pruebas",
+      "La DoD es solo documentación",
+      "La DoD pertenece a stakeholders externos"
+    ],
+    "answer": 0,
+    "explanation": "La Definition of Done define condiciones de calidad para considerar trabajo terminado.",
+    "category": "Definition of Done"
+  },
+  {
+    "question": "¿Quién debe cumplir la Definition of Done?",
+    "options": [
+      "Todo el Scrum Team al crear Incrementos",
+      "Solo el Product Owner",
+      "Solo QA",
+      "Solo stakeholders"
+    ],
+    "answer": 0,
+    "explanation": "La DoD es compartida y aplica al trabajo del Scrum Team.",
+    "category": "Definition of Done"
+  },
+  {
+    "question": "¿Qué es deuda técnica?",
+    "options": [
+      "Compromisos técnicos que pueden dificultar cambios futuros",
+      "Una deuda financiera del Product Owner",
+      "Una tarea de marketing",
+      "Una estimación en puntos"
+    ],
+    "answer": 0,
+    "explanation": "La deuda técnica puede reducir capacidad de innovación y calidad futura.",
+    "category": "Calidad"
+  },
+  {
+    "question": "¿Qué debe hacerse con la deuda técnica relevante?",
+    "options": [
+      "Hacerla transparente y gestionarla en el Product Backlog",
+      "Ocultarla hasta el final",
+      "Ignorarla si no la ve el usuario",
+      "Asignarla solo al Scrum Master"
+    ],
+    "answer": 0,
+    "explanation": "Hacer visible la deuda técnica permite tomar decisiones de producto informadas.",
+    "category": "Calidad"
+  },
+  {
+    "question": "¿Qué significa construir calidad en lugar de inspeccionarla al final?",
+    "options": [
+      "Prevenir defectos durante el desarrollo",
+      "Hacer testing solo al final",
+      "Eliminar Definition of Done",
+      "Evitar automatización"
+    ],
+    "answer": 0,
+    "explanation": "Construir calidad desde el inicio reduce defectos y retrabajo.",
+    "category": "Calidad"
+  },
+  {
+    "question": "¿Qué práctica puede apoyar la calidad técnica?",
+    "options": [
+      "Automatización de pruebas",
+      "Reducir transparencia",
+      "Extender el Sprint",
+      "Eliminar retrospectivas"
+    ],
+    "answer": 0,
+    "explanation": "La automatización puede apoyar feedback rápido y confianza en cambios.",
+    "category": "Calidad"
+  },
+  {
+    "question": "¿Qué ocurre si se baja la calidad para cumplir fecha?",
+    "options": [
+      "Puede aumentar riesgo, deuda y costo futuro",
+      "Siempre mejora valor",
+      "Scrum lo recomienda",
+      "No afecta al producto"
+    ],
+    "answer": 0,
+    "explanation": "Reducir calidad puede dañar valor futuro y capacidad de adaptación.",
+    "category": "Calidad"
+  },
+  {
+    "question": "¿La Definition of Done puede mejorar con el tiempo?",
+    "options": [
+      "Sí",
+      "No",
+      "Solo si lo exige un auditor",
+      "Solo al cambiar Product Owner"
+    ],
+    "answer": 0,
+    "explanation": "La DoD puede evolucionar conforme el equipo mejora y aprende.",
+    "category": "Definition of Done"
+  },
+  {
+    "question": "¿Qué es un Incremento usable?",
+    "options": [
+      "Un resultado que cumple la DoD y puede entregar valor",
+      "Un documento de análisis",
+      "Una idea sin construir",
+      "Un prototipo necesariamente descartable"
+    ],
+    "answer": 0,
+    "explanation": "Un Incremento usable cumple estándares y está en condición de uso.",
+    "category": "Incremento"
+  },
+  {
+    "question": "¿Los stakeholders forman parte del Scrum Team?",
+    "options": [
+      "No",
+      "Sí, siempre",
+      "Solo si son usuarios",
+      "Solo si son gerentes"
+    ],
+    "answer": 0,
+    "explanation": "Los stakeholders no son parte del Scrum Team, aunque colaboran y dan feedback.",
+    "category": "Stakeholders"
+  },
+  {
+    "question": "¿Cuál es una buena práctica con stakeholders?",
+    "options": [
+      "Involucrarlos en feedback frecuente",
+      "Ocultarles el progreso",
+      "Contactarlos solo al final",
+      "Dejar que ordenen directamente el Sprint Backlog"
+    ],
+    "answer": 0,
+    "explanation": "El feedback frecuente de stakeholders mejora aprendizaje y adaptación.",
+    "category": "Stakeholders"
+  },
+  {
+    "question": "¿Qué debe hacer el Product Owner con feedback contradictorio?",
+    "options": [
+      "Balancear intereses y decidir según valor del producto",
+      "Aceptar todo",
+      "Rechazar todo",
+      "Traspasar la decisión a Developers"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner integra información y toma decisiones para maximizar valor.",
+    "category": "Product Owner"
+  },
+  {
+    "question": "¿Qué NO es la Sprint Review?",
+    "options": [
+      "Una reunión de aceptación formal tipo gate",
+      "Una oportunidad de inspección",
+      "Una conversación sobre el producto",
+      "Un evento para adaptar el Product Backlog"
+    ],
+    "answer": 0,
+    "explanation": "La Sprint Review no es solo una aprobación formal; es inspección y adaptación.",
+    "category": "Sprint Review"
+  },
+  {
+    "question": "¿Qué debería discutirse en una Sprint Review efectiva?",
+    "options": [
+      "Incremento, feedback, mercado, progreso y próximos pasos",
+      "Solo tareas individuales",
+      "Solo control de asistencia",
+      "Solo presupuesto"
+    ],
+    "answer": 0,
+    "explanation": "Una buena Review conecta resultado, feedback y decisiones futuras.",
+    "category": "Sprint Review"
+  },
+  {
+    "question": "¿Qué sucede si el Product Owner no está disponible para el equipo?",
+    "options": [
+      "Disminuye claridad y capacidad de maximizar valor",
+      "Scrum funciona igual sin problemas",
+      "El Scrum Master toma su accountability",
+      "El Product Backlog desaparece"
+    ],
+    "answer": 0,
+    "explanation": "La falta de disponibilidad del Product Owner reduce claridad, feedback y toma de decisiones.",
+    "category": "Product Owner"
+  },
+  {
+    "question": "¿Qué significa que el Product Owner sea la voz del producto?",
+    "options": [
+      "Representa objetivos, valor y necesidades de stakeholders",
+      "Habla por los Developers",
+      "Controla la Daily Scrum",
+      "Administra evaluaciones de desempeño"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner integra necesidades y objetivos para orientar el producto.",
+    "category": "Product Owner"
+  },
+  {
+    "question": "¿Qué debe hacer el Product Owner si una funcionalidad no genera valor esperado?",
+    "options": [
+      "Inspeccionar evidencia y adaptar el Product Backlog",
+      "Seguir construyendo igual",
+      "Culpar a Developers",
+      "Extender el Sprint"
+    ],
+    "answer": 0,
+    "explanation": "El enfoque empírico exige adaptar decisiones según evidencia.",
+    "category": "Validación"
+  },
+  {
+    "question": "¿Qué ayuda a validar valor en el mercado?",
+    "options": [
+      "Feedback de usuarios y métricas reales",
+      "Suposiciones internas únicamente",
+      "Cantidad de documentos",
+      "Horas reportadas"
+    ],
+    "answer": 0,
+    "explanation": "La validación requiere evidencia de usuarios, clientes o negocio.",
+    "category": "Validación"
+  },
+  {
+    "question": "¿Qué es pivotar?",
+    "options": [
+      "Cambiar dirección según aprendizaje validado",
+      "Cancelar Scrum",
+      "Extender todos los Sprints",
+      "Ignorar feedback"
+    ],
+    "answer": 0,
+    "explanation": "Pivotar implica adaptar la estrategia cuando la evidencia indica que la hipótesis inicial no funciona.",
+    "category": "Validación"
+  },
+  {
+    "question": "¿Por qué Scrum es útil en trabajo complejo?",
+    "options": [
+      "Porque permite aprendizaje incremental",
+      "Porque garantiza predicción exacta",
+      "Porque elimina cambios",
+      "Porque reemplaza conversaciones"
+    ],
+    "answer": 0,
+    "explanation": "Scrum ayuda a gestionar complejidad mediante ciclos cortos, inspección y adaptación.",
+    "category": "Complejidad"
+  },
+  {
+    "question": "¿Qué significa que Scrum sea un framework?",
+    "options": [
+      "Define reglas mínimas, no un proceso completo detallado",
+      "Es una metodología cerrada paso a paso",
+      "Es una herramienta de software",
+      "Es una carta Gantt"
+    ],
+    "answer": 0,
+    "explanation": "Scrum es un marco de trabajo liviano que deja espacio para prácticas complementarias.",
+    "category": "Scrum"
+  },
+  {
+    "question": "¿Qué práctica sería una desviación peligrosa de Scrum?",
+    "options": [
+      "No tener Product Owner claro",
+      "Hacer Daily Scrum",
+      "Usar Sprint Goal",
+      "Inspeccionar Incrementos"
+    ],
+    "answer": 0,
+    "explanation": "Sin Product Owner claro se pierde accountability por valor y Product Backlog.",
+    "category": "Scrum"
+  },
+  {
+    "question": "¿Qué indica Scrum profesional?",
+    "options": [
+      "Usar Scrum con disciplina, ética, transparencia y foco en valor",
+      "Usar términos Scrum sin cambiar comportamientos",
+      "Eliminar accountability",
+      "Prometer certeza falsa"
+    ],
+    "answer": 0,
+    "explanation": "Professional Scrum implica usar el framework con disciplina y foco en resultados.",
+    "category": "Profesionalismo"
+  },
+  {
+    "question": "¿Qué es mechanical Scrum?",
+    "options": [
+      "Usar eventos y términos sin entender su propósito",
+      "Aplicar empirismo profundamente",
+      "Maximizar valor",
+      "Mejorar continuamente"
+    ],
+    "answer": 0,
+    "explanation": "Mechanical Scrum ocurre cuando se siguen mecánicas sin adoptar el propósito ni los valores.",
+    "category": "Profesionalismo"
+  },
+  {
+    "question": "¿Qué comportamiento contradice la transparencia?",
+    "options": [
+      "Ocultar problemas de calidad",
+      "Mostrar Incrementos",
+      "Hablar de riesgos",
+      "Inspeccionar métricas"
+    ],
+    "answer": 0,
+    "explanation": "Ocultar problemas impide inspección y adaptación efectiva.",
+    "category": "Transparencia"
+  },
+  {
+    "question": "¿Qué es accountability en Scrum?",
+    "options": [
+      "Responsabilidad clara por resultados",
+      "Culpar a una persona",
+      "Control jerárquico",
+      "Reporte administrativo"
+    ],
+    "answer": 0,
+    "explanation": "Accountability implica responsabilidad clara por resultados y decisiones.",
+    "category": "Scrum"
+  },
+  {
+    "question": "¿Quién es accountable por crear cualquier aspecto de un Incremento usable cada Sprint?",
+    "options": [
+      "Developers",
+      "Product Owner",
+      "Scrum Master",
+      "Stakeholders"
+    ],
+    "answer": 0,
+    "explanation": "Los Developers son accountable por crear cualquier aspecto de un Incremento usable.",
+    "category": "Developers"
+  },
+  {
+    "question": "¿Quién es accountable por establecer Scrum según la Scrum Guide?",
+    "options": [
+      "Scrum Master",
+      "Product Owner",
+      "Developers",
+      "Cliente"
+    ],
+    "answer": 0,
+    "explanation": "El Scrum Master es accountable por establecer Scrum y ayudar a que se entienda y use.",
+    "category": "Scrum Master"
+  },
+  {
+    "question": "¿Quién es accountable por maximizar el valor del producto?",
+    "options": [
+      "Product Owner",
+      "Scrum Master",
+      "Developers",
+      "Sponsor"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner mantiene accountability sobre la maximización de valor.",
+    "category": "Product Owner"
+  },
+  {
+    "question": "Un stakeholder exige insertar una funcionalidad urgente en medio del Sprint. ¿Qué debería protegerse primero?",
+    "options": [
+      "El Sprint Goal",
+      "La preferencia del stakeholder",
+      "La cantidad de tareas",
+      "La agenda del gerente"
+    ],
+    "answer": 0,
+    "explanation": "Durante el Sprint no deberían hacerse cambios que pongan en peligro el Sprint Goal.",
+    "category": "Escenario"
+  },
+  {
+    "question": "El Product Owner quiere que los Developers seleccionen más trabajo del que creen posible. ¿Quién decide la cantidad final?",
+    "options": [
+      "Developers",
+      "Product Owner",
+      "Scrum Master",
+      "Stakeholders"
+    ],
+    "answer": 0,
+    "explanation": "Los Developers deciden cuánto trabajo pueden seleccionar para el Sprint.",
+    "category": "Escenario"
+  },
+  {
+    "question": "En la Review, los usuarios muestran que una funcionalidad no resuelve su problema. ¿Qué debería pasar?",
+    "options": [
+      "Adaptar el Product Backlog",
+      "Ignorar el feedback hasta el proyecto final",
+      "Extender el Sprint anterior",
+      "Eliminar la Retrospective"
+    ],
+    "answer": 0,
+    "explanation": "La Review existe para inspeccionar y adaptar el producto y Product Backlog.",
+    "category": "Escenario"
+  },
+  {
+    "question": "Un equipo termina muchas tareas, pero ninguna cumple la DoD. ¿Cuánto Incremento Done tiene?",
+    "options": [
+      "Ninguno",
+      "Todas las tareas cuentan",
+      "La mitad",
+      "Depende de la velocidad"
+    ],
+    "answer": 0,
+    "explanation": "Solo el trabajo que cumple la Definition of Done forma parte del Incremento.",
+    "category": "Escenario"
+  },
+  {
+    "question": "Un Product Owner recibe 50 solicitudes. ¿Qué debería hacer?",
+    "options": [
+      "Ordenarlas según valor, riesgo, aprendizaje y objetivos",
+      "Aceptar todas para el próximo Sprint",
+      "Delegar el orden al gerente",
+      "Ordenarlas por antigüedad solamente"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner debe ordenar para maximizar valor del producto.",
+    "category": "Escenario"
+  },
+  {
+    "question": "Un Scrum Team no mejora tras varias retrospectivas. ¿Qué falta probablemente?",
+    "options": [
+      "Adaptación real con acciones concretas",
+      "Más control jerárquico",
+      "Sprints más largos",
+      "Menos transparencia"
+    ],
+    "answer": 0,
+    "explanation": "La Retrospective debe producir mejoras accionables y seguimiento.",
+    "category": "Escenario"
+  },
+  {
+    "question": "Si el mercado cambia y el Sprint Goal queda obsoleto, ¿qué puede hacer el Product Owner?",
+    "options": [
+      "Cancelar el Sprint",
+      "Extenderlo indefinidamente",
+      "Cambiar la DoD",
+      "Eliminar la Daily Scrum"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner puede cancelar un Sprint cuando su objetivo ya no tiene sentido.",
+    "category": "Escenario"
+  },
+  {
+    "question": "Si hay baja confianza entre negocio y tecnología, ¿qué ayuda más?",
+    "options": [
+      "Transparencia, feedback frecuente e Incrementos Done",
+      "Más documentación cerrada",
+      "Menos contacto con usuarios",
+      "Asignación individual de tareas"
+    ],
+    "answer": 0,
+    "explanation": "La transparencia y entregas frecuentes ayudan a reconstruir confianza.",
+    "category": "Escenario"
+  },
+  {
+    "question": "Si el equipo se enfoca solo en velocidad, ¿qué riesgo aparece?",
+    "options": [
+      "Optimizar actividad en vez de valor",
+      "Maximizar validación",
+      "Mejorar necesariamente ROI",
+      "Eliminar deuda técnica"
+    ],
+    "answer": 0,
+    "explanation": "La velocidad sin foco en valor puede inducir decisiones equivocadas.",
+    "category": "Métricas"
+  },
+  {
+    "question": "Si una métrica genera comportamientos negativos, ¿qué debe hacer el Product Owner?",
+    "options": [
+      "Revisar la métrica y sus incentivos",
+      "Seguir usándola sin cambios",
+      "Ocultarla",
+      "Hacerla obligatoria para todos"
+    ],
+    "answer": 0,
+    "explanation": "Las métricas deben ayudar a decisiones de valor, no inducir distorsiones.",
+    "category": "Métricas"
+  },
+  {
+    "question": "¿Qué es una métrica de Current Value en Evidence-Based Management?",
+    "options": [
+      "Valor actual entregado a usuarios u organización",
+      "Tiempo restante del proyecto",
+      "Cantidad de tareas abiertas",
+      "Horas de reuniones"
+    ],
+    "answer": 0,
+    "explanation": "Current Value observa el valor que el producto entrega actualmente.",
+    "category": "EBM"
+  },
+  {
+    "question": "¿Qué mide Time to Market?",
+    "options": [
+      "Capacidad de entregar valor rápidamente",
+      "Cantidad de personas en el equipo",
+      "Costo de licencias",
+      "Tamaño del Product Backlog"
+    ],
+    "answer": 0,
+    "explanation": "Time to Market se relaciona con rapidez para entregar y aprender.",
+    "category": "EBM"
+  },
+  {
+    "question": "¿Qué mide Ability to Innovate?",
+    "options": [
+      "Capacidad de entregar nuevas capacidades valiosas",
+      "Cantidad de sprints",
+      "Número de stakeholders",
+      "Duración de reuniones"
+    ],
+    "answer": 0,
+    "explanation": "Ability to Innovate observa qué tan fácil es innovar y entregar valor nuevo.",
+    "category": "EBM"
+  },
+  {
+    "question": "¿Qué mide Unrealized Value?",
+    "options": [
+      "Valor potencial aún no capturado",
+      "Trabajo terminado",
+      "Cantidad de defectos",
+      "Horas disponibles"
+    ],
+    "answer": 0,
+    "explanation": "Unrealized Value ayuda a entender oportunidades futuras.",
+    "category": "EBM"
+  },
+  {
+    "question": "¿Qué decisión corresponde más al Product Owner?",
+    "options": [
+      "Elegir qué objetivos de producto perseguir",
+      "Decidir cómo programar una solución técnica",
+      "Dirigir la Daily Scrum",
+      "Evaluar desempeño individual"
+    ],
+    "answer": 0,
+    "explanation": "El Product Owner decide prioridades y objetivos de producto.",
+    "category": "Product Owner"
+  },
+  {
+    "question": "¿Qué decisión corresponde más a Developers?",
+    "options": [
+      "Decidir cómo construir el Incremento",
+      "Definir unilateralmente el Product Goal",
+      "Cancelar el Sprint",
+      "Ordenar el Product Backlog"
+    ],
+    "answer": 0,
+    "explanation": "Los Developers deciden cómo realizar el trabajo técnico y crear el Incremento.",
+    "category": "Developers"
+  },
+  {
+    "question": "¿Qué servicio presta el Scrum Master al Product Owner?",
+    "options": [
+      "Ayudar a encontrar técnicas efectivas de Product Goal y Product Backlog Management",
+      "Ordenar el Product Backlog por él",
+      "Aceptar solicitudes de stakeholders",
+      "Asignar Developers"
+    ],
+    "answer": 0,
+    "explanation": "El Scrum Master ayuda al Product Owner a aplicar técnicas efectivas sin tomar su accountability.",
+    "category": "Scrum Master"
+  },
+  {
+    "question": "¿Qué servicio presta el Scrum Master a la organización?",
+    "options": [
+      "Ayudar a entender y adoptar Scrum",
+      "Actuar como jefe de proyecto tradicional",
+      "Controlar asistencia del equipo",
+      "Aprobar presupuestos"
+    ],
+    "answer": 0,
+    "explanation": "El Scrum Master ayuda a la organización a entender y aplicar Scrum.",
+    "category": "Scrum Master"
+  },
+  {
+    "question": "¿Qué significa self-management en Scrum?",
+    "options": [
+      "El equipo decide internamente quién hace qué, cuándo y cómo",
+      "El gerente asigna cada tarea",
+      "El PO programa el trabajo técnico",
+      "Los stakeholders controlan la Daily"
+    ],
+    "answer": 0,
+    "explanation": "Los Scrum Teams son self-managing: deciden cómo organizar su trabajo.",
+    "category": "Scrum Team"
+  },
+  {
+    "question": "¿Qué significa cross-functional?",
+    "options": [
+      "El equipo tiene todas las habilidades necesarias para crear valor",
+      "Cada persona hace solo una tarea",
+      "Se depende de departamentos externos para todo",
+      "Solo hay programadores"
+    ],
+    "answer": 0,
+    "explanation": "Un equipo cross-functional tiene las competencias necesarias para entregar Incrementos.",
+    "category": "Scrum Team"
+  },
+  {
+    "question": "¿Qué enfoque reduce handoffs y desperdicio?",
+    "options": [
+      "Equipos Scrum cross-functional",
+      "Más aprobaciones secuenciales",
+      "Separar análisis, desarrollo y prueba siempre",
+      "Esperar feedback final"
+    ],
+    "answer": 0,
+    "explanation": "Equipos integrados reducen traspasos y mejoran flujo de valor.",
+    "category": "Scrum Team"
+  },
+  {
+    "question": "¿Qué describe mejor un Product Backlog Item?",
+    "options": [
+      "Una unidad de trabajo orientada al producto",
+      "Una persona del equipo",
+      "Un evento Scrum",
+      "Una reunión de status"
+    ],
+    "answer": 0,
+    "explanation": "Un PBI representa trabajo necesario para mejorar el producto.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿Qué es una user story?",
+    "options": [
+      "Una forma posible de expresar una necesidad de usuario",
+      "Un artefacto obligatorio de Scrum",
+      "Un reporte técnico",
+      "Una reunión"
+    ],
+    "answer": 0,
+    "explanation": "Las user stories son una técnica útil, pero no obligatoria en Scrum.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿Scrum exige usar story points?",
+    "options": [
+      "No",
+      "Sí",
+      "Solo para PSPO",
+      "Solo para equipos grandes"
+    ],
+    "answer": 0,
+    "explanation": "Scrum no exige story points; es una práctica complementaria.",
+    "category": "Estimación"
+  },
+  {
+    "question": "¿Scrum exige usar burndown chart?",
+    "options": [
+      "No",
+      "Sí",
+      "Solo en Daily",
+      "Solo para Product Owner"
+    ],
+    "answer": 0,
+    "explanation": "Scrum no exige burndown charts; pueden ser herramientas complementarias.",
+    "category": "Métricas"
+  },
+  {
+    "question": "¿Scrum exige un Project Manager?",
+    "options": [
+      "No",
+      "Sí",
+      "Solo para releases",
+      "Solo para equipos grandes"
+    ],
+    "answer": 0,
+    "explanation": "Scrum define Product Owner, Scrum Master y Developers; no Project Manager.",
+    "category": "Scrum"
+  },
+  {
+    "question": "¿Qué debe pasar con decisiones importantes del producto?",
+    "options": [
+      "Deben ser transparentes y conectadas al Product Goal",
+      "Deben ocultarse hasta el final",
+      "Deben tomarse solo por comité",
+      "Deben basarse solo en jerarquía"
+    ],
+    "answer": 0,
+    "explanation": "Las decisiones de producto deben ser transparentes y orientadas al objetivo.",
+    "category": "Product Owner"
+  },
+  {
+    "question": "¿Qué es una buena señal de Product Backlog sano?",
+    "options": [
+      "Está ordenado, visible, entendido y evoluciona",
+      "Nunca cambia",
+      "Tiene miles de tareas sin orden",
+      "Solo el Scrum Master lo conoce"
+    ],
+    "answer": 0,
+    "explanation": "Un Product Backlog efectivo es transparente, visible, entendido y emergente.",
+    "category": "Product Backlog"
+  },
+  {
+    "question": "¿Qué significa que Scrum sea iterativo e incremental?",
+    "options": [
+      "Trabaja en ciclos y crea valor en partes",
+      "Entrega todo al final",
+      "Evita feedback",
+      "Congela el alcance"
+    ],
+    "answer": 0,
+    "explanation": "Iterativo e incremental permite aprendizaje frecuente y entrega progresiva.",
+    "category": "Scrum"
+  },
+  {
+    "question": "¿Qué debe hacer un Product Owner profesional?",
+    "options": [
+      "Conectar estrategia, valor, validación y decisiones de backlog",
+      "Solo escribir tickets",
+      "Solo asistir a Daily",
+      "Solo aprobar tareas técnicas"
+    ],
+    "answer": 0,
+    "explanation": "Un Product Owner profesional conecta visión, valor, validación y ejecución.",
+    "category": "Product Owner"
   }
 ];
 
+let questions = [];
 let current = 0;
 let score = 0;
+let incorrect = 0;
 let answered = false;
 
-function loadQuestion() {
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function populateCategories() {
+  const select = document.getElementById("categoryFilter");
+  const categories = [...new Set(allQuestions.map(q => q.category))].sort();
+  categories.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    select.appendChild(opt);
+  });
+}
+
+function startQuiz() {
+  const count = parseInt(document.getElementById("questionCount").value, 10);
+  const category = document.getElementById("categoryFilter").value;
+  let pool = category === "Todas" ? allQuestions : allQuestions.filter(q => q.category === category);
+  questions = shuffle(pool).slice(0, Math.min(count, pool.length));
+
+  current = 0;
+  score = 0;
+  incorrect = 0;
   answered = false;
+
+  document.getElementById("result").innerHTML = "";
+  document.getElementById("restartBtn").style.display = "none";
+  loadQuestion();
+}
+
+function shuffleOnly() {
+  questions = shuffle(questions.length ? questions : allQuestions);
+  current = 0;
+  score = 0;
+  incorrect = 0;
+  document.getElementById("result").innerHTML = "";
+  loadQuestion();
+}
+
+function updateStats() {
+  const total = questions.length || 0;
+  const answeredCount = score + incorrect;
+  const percent = answeredCount > 0 ? Math.round((score / answeredCount) * 100) : 0;
+  const progress = total > 0 ? Math.round((current / total) * 100) : 0;
+
+  document.getElementById("statCurrent").innerText = total ? `${Math.min(current + 1, total)}/${total}` : "0/0";
+  document.getElementById("statCorrect").innerText = score;
+  document.getElementById("statIncorrect").innerText = incorrect;
+  document.getElementById("statPercent").innerText = `${percent}%`;
+  document.getElementById("progressBar").style.width = `${progress}%`;
+}
+
+function loadQuestion() {
+  if (!questions.length) {
+    document.getElementById("quiz").innerHTML = "<p>No hay preguntas para esta selección.</p>";
+    return;
+  }
+
+  answered = false;
+  updateStats();
   const q = questions[current];
 
   document.getElementById("quiz").innerHTML = `
+    <span class="category">${q.category}</span>
     <div class="question">${current + 1}. ${q.question}</div>
     ${q.options.map((opt, i) => `
-      <div class="option" onclick="selectAnswer(${i}, this)">
-        ${opt}
-      </div>
+      <div class="option" onclick="selectAnswer(${i}, this)">${String.fromCharCode(65+i)}. ${opt}</div>
     `).join("")}
     <div id="explanation"></div>
   `;
@@ -171,12 +1847,16 @@ function selectAnswer(index, element) {
 
   if (index !== q.answer) {
     element.classList.add("incorrect");
+    incorrect++;
   } else {
     score++;
   }
 
+  updateStats();
+
   document.getElementById("explanation").innerHTML = `
     <div class="explanation">
+      <strong>Respuesta correcta:</strong> ${String.fromCharCode(65+q.answer)}. ${q.options[q.answer]}<br><br>
       <strong>Explicación:</strong> ${q.explanation}
     </div>
   `;
@@ -190,20 +1870,35 @@ function nextQuestion() {
   if (current < questions.length) {
     loadQuestion();
   } else {
-    document.getElementById("quiz").innerHTML = "";
-    document.getElementById("nextBtn").style.display = "none";
-
-    const percent = Math.round((score / questions.length) * 100);
-
-    document.getElementById("result").innerHTML = `
-      Resultado final: ${score}/${questions.length}<br>
-      Porcentaje: ${percent}%<br><br>
-      ${percent >= 85 ? "Nivel recomendado para rendir el examen." : "Conviene seguir practicando."}
-    `;
+    finishQuiz();
   }
 }
 
-loadQuestion();
+function finishQuiz() {
+  const total = questions.length;
+  const percent = Math.round((score / total) * 100);
+  document.getElementById("progressBar").style.width = "100%";
+  document.getElementById("quiz").innerHTML = "";
+  document.getElementById("nextBtn").style.display = "none";
+  document.getElementById("restartBtn").style.display = "inline-block";
+
+  document.getElementById("statCurrent").innerText = `${total}/${total}`;
+  document.getElementById("statCorrect").innerText = score;
+  document.getElementById("statIncorrect").innerText = incorrect;
+  document.getElementById("statPercent").innerText = `${percent}%`;
+
+  document.getElementById("result").innerHTML = `
+    <h2>Resultado final</h2>
+    <p><strong>Total de preguntas:</strong> ${total}</p>
+    <p><strong>Correctas:</strong> ${score}</p>
+    <p><strong>Incorrectas:</strong> ${incorrect}</p>
+    <p><strong>Porcentaje final:</strong> ${percent}%</p>
+    <h3>${percent >= 85 ? "Nivel recomendado para rendir PSPO I." : "Conviene seguir practicando antes de rendir."}</h3>
+  `;
+}
+
+populateCategories();
+startQuiz();
 </script>
 </body>
 </html>
