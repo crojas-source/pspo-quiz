@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Simulador PSPO I - Scrum.org</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 20px;
+}
+.container {
+  max-width: 850px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+h1 {
+  text-align: center;
+}
+.question {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+.option {
+  background: #eef2f7;
+  padding: 14px;
+  margin: 10px 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.option:hover {
+  background: #dce6f2;
+}
+.correct {
+  background: #c8f7c5 !important;
+}
+.incorrect {
+  background: #f7c5c5 !important;
+}
+button {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #0066cc;
+  color: white;
+  cursor: pointer;
+  margin-top: 20px;
+}
+#result {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+}
+.explanation {
+  margin-top: 15px;
+  background: #fff7d6;
+  padding: 12px;
+  border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>Simulador PSPO I - Scrum.org</h1>
+  <p><strong>Objetivo:</strong> practicar conceptos de Scrum, Product Owner, Product Backlog, valor e Incremento.</p>
+
+  <div id="quiz"></div>
+  <button id="nextBtn" onclick="nextQuestion()">Siguiente</button>
+  <div id="result"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    question: "¿Quién es responsable de maximizar el valor del producto?",
+    options: ["Scrum Master", "Product Owner", "Developers", "Stakeholders"],
+    answer: 1,
+    explanation: "El Product Owner es responsable de maximizar el valor del producto resultante del trabajo del Scrum Team."
+  },
+  {
+    question: "¿Quién es responsable de gestionar el Product Backlog?",
+    options: ["Scrum Master", "Product Owner", "Developers", "Cliente"],
+    answer: 1,
+    explanation: "El Product Owner es responsable de la gestión efectiva del Product Backlog."
+  },
+  {
+    question: "¿Cuál es la duración máxima de un Sprint?",
+    options: ["Una semana", "Un mes", "Tres meses", "No tiene límite"],
+    answer: 1,
+    explanation: "Un Sprint tiene una duración fija de un mes o menos."
+  },
+  {
+    question: "¿Qué se inspecciona en la Sprint Review?",
+    options: ["Solo el desempeño del equipo", "El Incremento y el progreso hacia el Product Goal", "Solo la velocidad", "Solo los errores"],
+    answer: 1,
+    explanation: "En la Sprint Review se inspecciona el resultado del Sprint y se adapta el Product Backlog si es necesario."
+  },
+  {
+    question: "¿Quién puede cancelar un Sprint?",
+    options: ["Scrum Master", "Developers", "Product Owner", "Stakeholders"],
+    answer: 2,
+    explanation: "Solo el Product Owner tiene la autoridad para cancelar un Sprint."
+  },
+  {
+    question: "¿Qué es el Product Goal?",
+    options: ["Una tarea del Sprint", "El objetivo futuro del producto", "Una métrica financiera", "Un reporte del Scrum Master"],
+    answer: 1,
+    explanation: "El Product Goal describe un estado futuro del producto que sirve como objetivo para el Scrum Team."
+  },
+  {
+    question: "¿Quién decide el orden de los elementos del Product Backlog?",
+    options: ["Scrum Master", "Product Owner", "Developers", "Stakeholders"],
+    answer: 1,
+    explanation: "El Product Owner ordena el Product Backlog para maximizar valor."
+  },
+  {
+    question: "¿Qué debe cumplir un Incremento?",
+    options: ["La Definition of Done", "La opinión del cliente", "El presupuesto", "La velocidad esperada"],
+    answer: 0,
+    explanation: "Todo Incremento debe cumplir la Definition of Done."
+  },
+  {
+    question: "¿Quiénes crean el Sprint Backlog?",
+    options: ["Product Owner solamente", "Scrum Master solamente", "Developers", "Stakeholders"],
+    answer: 2,
+    explanation: "Los Developers crean el Sprint Backlog durante la Sprint Planning."
+  },
+  {
+    question: "¿Qué evento permite al Scrum Team inspeccionar cómo trabajó y planificar mejoras?",
+    options: ["Daily Scrum", "Sprint Review", "Sprint Retrospective", "Sprint Planning"],
+    answer: 2,
+    explanation: "La Sprint Retrospective sirve para inspeccionar el trabajo del equipo y definir mejoras."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+
+function loadQuestion() {
+  answered = false;
+  const q = questions[current];
+
+  document.getElementById("quiz").innerHTML = `
+    <div class="question">${current + 1}. ${q.question}</div>
+    ${q.options.map((opt, i) => `
+      <div class="option" onclick="selectAnswer(${i}, this)">
+        ${opt}
+      </div>
+    `).join("")}
+    <div id="explanation"></div>
+  `;
+
+  document.getElementById("nextBtn").style.display = "none";
+}
+
+function selectAnswer(index, element) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[current];
+  const options = document.querySelectorAll(".option");
+
+  options[q.answer].classList.add("correct");
+
+  if (index !== q.answer) {
+    element.classList.add("incorrect");
+  } else {
+    score++;
+  }
+
+  document.getElementById("explanation").innerHTML = `
+    <div class="explanation">
+      <strong>Explicación:</strong> ${q.explanation}
+    </div>
+  `;
+
+  document.getElementById("nextBtn").style.display = "inline-block";
+}
+
+function nextQuestion() {
+  current++;
+
+  if (current < questions.length) {
+    loadQuestion();
+  } else {
+    document.getElementById("quiz").innerHTML = "";
+    document.getElementById("nextBtn").style.display = "none";
+
+    const percent = Math.round((score / questions.length) * 100);
+
+    document.getElementById("result").innerHTML = `
+      Resultado final: ${score}/${questions.length}<br>
+      Porcentaje: ${percent}%<br><br>
+      ${percent >= 85 ? "Nivel recomendado para rendir el examen." : "Conviene seguir practicando."}
+    `;
+  }
+}
+
+loadQuestion();
+</script>
+</body>
+</html>
